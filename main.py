@@ -1,36 +1,39 @@
-from pandas import DataFrame
+import pandas as pd
 from joblib import load
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 
 model = load("pipeline.joblib")
 
 app = FastAPI()
 
-class DataPredict(BaseModel):
-    data_to_predict: list[list] = [[23, 'male', 34.4, 0, 'no', 'southwest'], [35, 'female', 40, 1, 'no', 'northwest']]
+
+class Vino(BaseModel):
+    alcohol: float = 14.23
+    malic_acid: float = 1.71
+    ash: float = 2.43
+    alcalinity_of_ash: float = 15.6
+    magnesium: float = 127.0
+    total_phenols: float = 2.8
+    flavanoids: float = 3.06
+    nonflavanoid_phenols: float = 0.28
+    proanthocyanins: float = 2.29
+    color_intensity: float = 5.64
+    hue: float = 1.04
+    od280_od315_of_diluted_wines: float = 3.92
+    proline: float = 1065.0
+
 
 @app.post("/predict")
-def predict(request: DataPredict):
+def predict(vinos: list[Vino]):
     try:
-        list_data = request.data_to_predict
-        df_data = DataFrame(list_data, columns=['age', 'sex', 'bmi', 'children', 'smoker', 'region'])
-
-        prediction = model.predict(df_data)
+        df = pd.DataFrame([v.model_dump() for v in vinos])
+        prediction = model.predict(df)
         return {"prediction": prediction.tolist()}
-    except ValidationError as ve:
-        raise HTTPException(status_code=400, detail=ve.errors())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/sum")
-def sum(param1: float, param2: float):
-    try:
-        result = param1 + param2
-        return {"param1": param1, "param2": param2, "sum": result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 def home():
-    return {'Universidad EIA': 'MLOps'}
+    return {"Universidad EIA": "MLOps"}
