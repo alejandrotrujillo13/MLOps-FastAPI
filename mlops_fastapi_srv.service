@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 User=ubuntu
-WorkingDirectory=/home/ubuntu/MLOps-FastAPI
+WorkingDirectory=/home/ubuntu/mlops/MLOps-FastAPI
 ExecStart=/home/ubuntu/.pyenv/shims/uvicorn main:app --host 0.0.0.0 --port 8000
 
 Restart=always
